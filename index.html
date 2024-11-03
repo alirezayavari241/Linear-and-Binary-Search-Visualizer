@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen space-y-5">
+
+    <h2 class="text-2xl font-semibold text-gray-800">Search Visualization</h2>
+    
+    <div class="space-y-3 w-80">
+        <div>
+            <label class="block text-gray-700">Enter numbers (comma separated):</label>
+            <input type="text" id="numbersInput" placeholder="1,2,3,..." class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        
+        <div>
+            <label class="block text-gray-700">Enter target value:</label>
+            <input type="number" id="targetInput" placeholder="Number" class="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+
+        <div>
+            <label class="block text-gray-700">Choose search algorithm:</label>
+            <select id="algorithmSelect" class="w-full mt-1 px-3 py-2 border rounded-lg">
+                <option value="linear">Linear Search</option>
+                <option value="binary">Binary Search</option>
+            </select>
+        </div>
+
+        <button onclick="startSearch()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mt-4">Start Search</button>
+    </div>
+    
+    <div id="numberList" class="flex flex-wrap gap-3 justify-center mt-8"></div>
+    <p id="result" class="text-lg font-semibold text-gray-800 mt-4"></p>
+
+    <script>
+        async function startSearch() {
+            const numbersInput = document.getElementById("numbersInput").value;
+            const target = parseInt(document.getElementById("targetInput").value);
+            const algorithm = document.getElementById("algorithmSelect").value;
+            let numbers = numbersInput.split(',').map(Number);
+
+            document.getElementById("numberList").innerHTML = "";
+            document.getElementById("result").textContent = "";
+
+            if (algorithm === "binary") {
+                numbers.sort((a, b) => a - b);
+            }
+            numbers.forEach((num, index) => {
+                const numberElement = document.createElement("div");
+                numberElement.classList.add("number", "w-12", "h-12", "flex", "items-center", "justify-center", "text-white", "font-bold", "bg-gray-500", "rounded-lg", "text-lg", "relative");
+                numberElement.id = `number-${index}`;
+                numberElement.textContent = num;
+                document.getElementById("numberList").appendChild(numberElement);
+            });
+
+            if ( algorithm === "linear") {
+                await linearSearch(numbers, target);
+            } else if ( algorithm === "binary") {
+                await binarySearch(numbers, target);
+            }
+        }
+
+        async function linearSearch(numbers, target) {
+            for (let i = 0; i < numbers.length; i++) {
+                const numberElement = document.getElementById(`number-${i}`);
+                numberElement.classList.replace("bg-gray-500", "bg-yellow-500");
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (numbers[i] === target) {
+                    numberElement.classList.replace("bg-yellow-500", "bg-green-500");
+                    document.getElementById("result").textContent = `Target found at index ${i}`;
+                    return;
+                } else {
+                    numberElement.classList.replace("bg-yellow-500", "bg-red-500");
+                }
+            }
+
+            document.getElementById("result").textContent = "Target not found in the list.";
+        }
+
+        async function binarySearch(numbers, target) {
+            let left = 0;
+            let right = numbers.length - 1;
+
+            function clearMidLabels() {
+                document.querySelectorAll(".mid-label").forEach(label => label.remove());
+            }
+
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                const midElement = document.getElementById(`number-${mid}`);
+
+                clearMidLabels();
+                const midLabel = document.createElement("div");
+                midLabel.className = "mid-label text-xs text-blue-600 absolute -bottom-6";
+                midLabel.textContent = `mid: ${mid}`;
+                midElement.appendChild(midLabel);
+
+                for (let i = left; i <= right; i++) {
+                    document.getElementById(`number-${i}`).classList.replace("bg-gray-500", "bg-blue-500");
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (numbers[mid] === target) {
+                    midElement.classList.replace("bg-blue-500", "bg-green-500");
+                    document.getElementById("result").textContent = `Target found at index ${mid}`;
+                    return;
+                } else {
+                    midElement.classList.replace("bg-blue-500", "bg-red-500");
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    if (numbers[mid] < target) {
+                        for (let i = left; i <= mid; i++) {
+                            document.getElementById(`number-${i}`).classList.replace("bg-blue-500", "bg-gray-500");
+                        }
+                        left = mid + 1;
+                    } else {
+                        for (let i = mid; i <= right; i++) {
+                            document.getElementById(`number-${i}`).classList.replace("bg-blue-500", "bg-gray-500");
+                        }
+                        right = mid - 1;
+                    }
+                }
+            }
+
+            clearMidLabels();
+            document.getElementById("result").textContent = "Target not found in the list.";
+        }
+    </script>
+</body>
+</html>
