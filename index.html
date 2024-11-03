@@ -45,9 +45,12 @@
             document.getElementById("numberList").innerHTML = "";
             document.getElementById("result").textContent = "";
 
-            if (algorithm === "binary") {
-                numbers.sort((a, b) => a - b);
+            // Check if the array is sorted before binary search
+            if (algorithm === "binary" && !isArraySorted(numbers)) {
+                document.getElementById("result").innerHTML = `Your list is not sorted. <button onclick="sortArray()" class="bg-blue-500 text-white py-1 px-2 rounded">Sort Now</button>`;
+                return;
             }
+
             numbers.forEach((num, index) => {
                 const numberElement = document.createElement("div");
                 numberElement.classList.add("number", "w-12", "h-12", "flex", "items-center", "justify-center", "text-white", "font-bold", "bg-gray-500", "rounded-lg", "text-lg", "relative");
@@ -56,11 +59,26 @@
                 document.getElementById("numberList").appendChild(numberElement);
             });
 
-            if ( algorithm === "linear") {
+            if (algorithm === "linear") {
                 await linearSearch(numbers, target);
-            } else if ( algorithm === "binary") {
+            } else if (algorithm === "binary") {
                 await binarySearch(numbers, target);
             }
+        }
+
+        function isArraySorted(arr) {
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i] > arr[i + 1]) return false;
+            }
+            return true;
+        }
+
+        function sortArray() {
+            const numbersInput = document.getElementById("numbersInput").value;
+            let numbers = numbersInput.split(',').map(Number);
+            numbers.sort((a, b) => a - b); // Sort in ascending order
+            document.getElementById("numbersInput").value = numbers.join(", "); // Update input
+            document.getElementById("result").textContent = "Array sorted! You can now search.";
         }
 
         async function linearSearch(numbers, target) {
@@ -83,15 +101,15 @@
         }
 
         async function binarySearch(numbers, target) {
-            let left = 0;
-            let right = numbers.length - 1;
+            let low = 0;
+            let high = numbers.length - 1;
 
             function clearMidLabels() {
                 document.querySelectorAll(".mid-label").forEach(label => label.remove());
             }
 
-            while (left <= right) {
-                const mid = Math.floor((left + right) / 2);
+            while (low <= high) {
+                const mid = Math.floor((low + high) / 2);
                 const midElement = document.getElementById(`number-${mid}`);
 
                 clearMidLabels();
@@ -100,7 +118,7 @@
                 midLabel.textContent = `mid: ${mid}`;
                 midElement.appendChild(midLabel);
 
-                for (let i = left; i <= right; i++) {
+                for (let i = low; i <= high; i++) {
                     document.getElementById(`number-${i}`).classList.replace("bg-gray-500", "bg-blue-500");
                 }
 
@@ -115,15 +133,15 @@
                     await new Promise(resolve => setTimeout(resolve, 500));
 
                     if (numbers[mid] < target) {
-                        for (let i = left; i <= mid; i++) {
+                        for (let i = low; i <= mid; i++) {
                             document.getElementById(`number-${i}`).classList.replace("bg-blue-500", "bg-gray-500");
                         }
-                        left = mid + 1;
+                        low = mid + 1;
                     } else {
-                        for (let i = mid; i <= right; i++) {
+                        for (let i = mid; i <= high; i++) {
                             document.getElementById(`number-${i}`).classList.replace("bg-blue-500", "bg-gray-500");
                         }
-                        right = mid - 1;
+                        high = mid - 1;
                     }
                 }
             }
